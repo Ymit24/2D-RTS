@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Dev\Unity Projects\Prototypes\Rts" t="IncludeRecursive">
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="CameraController.cs" t="Include" />
+        <e p="Game" t="Include">
+          <e p="Building.cs" t="Include" />
+          <e p="BuildingController.cs" t="Include" />
+          <e p="Tasks" t="Include">
+            <e p="TaskSystem.cs" t="Include" />
+          </e>
+          <e p="Tile.cs" t="Include" />
+          <e p="TileCoord.cs" t="Include" />
+          <e p="Worker.cs" t="Include" />
+          <e p="World.cs" t="Include" />
+        </e>
+        <e p="MouseController.cs" t="Include" />
+        <e p="WorkerController.cs" t="Include" />
+        <e p="WorldController.cs" t="Include" />
+        <e p="Ymit" t="Include">
+          <e p="CollisionChildHandler.cs" t="Include" />
+          <e p="GameAssets.cs" t="Include" />
+          <e p="ProgressBar.cs" t="Include" />
+          <e p="SpriteAnimator.cs" t="Include" />
+          <e p="Timer.cs" t="Include" />
+          <e p="UI.cs" t="Include" />
+          <e p="Utils.cs" t="Include" />
+        </e>
+      </e>
+      <e p="Library" t="ExcludeRecursive" />
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Rts.sln" t="IncludeFlat" />
+      <e p="Temp" t="ExcludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+      </e>
+    </e>
+    <e p="C:\Users\chris\.Rider2018.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\chris\.Rider2018.2\system\resharper-host\Local\Transient\ReSharperHost\v182\SolutionCaches\_Rts.-90146144.00" t="ExcludeRecursive" />
+  </component>
+</project>
