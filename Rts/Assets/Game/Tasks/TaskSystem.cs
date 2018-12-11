@@ -26,6 +26,11 @@ namespace Game.Task
             public Tile buildTile;
             public Building toBuild;
         }
+
+        public class MoveToTask : BaseTask
+        {
+            public TileCoord target;
+        }
     }
     
     public class TaskSystem

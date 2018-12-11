@@ -17,6 +17,7 @@ namespace Ymit
         public static GameObject CreateCanvas()
         {
             CanvasGO = new GameObject("Canvas", typeof(RectTransform), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            CanvasGO.GetComponent<Canvas>().sortingLayerName = "CanvasLayer";
             CanvasGO.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
             CanvasGO.GetComponent<RectTransform>().sizeDelta = Vector2.one;
             CanvasGO.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;

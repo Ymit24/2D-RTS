@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Dev\Unity Projects\Prototypes\Rts" t="IncludeRecursive">
+    <e p="C:\Dev\Unity Projects\Git\2D-RTS\Rts" t="IncludeRecursive">
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="BuildingController.cs" t="Include" />
         <e p="CameraController.cs" t="Include" />
         <e p="Game" t="Include">
           <e p="Building.cs" t="Include" />
-          <e p="BuildingController.cs" t="Include" />
+          <e p="Pathfinding" t="Include">
+            <e p="Node.cs" t="Include" />
+            <e p="Pathfinder.cs" t="Include" />
+          </e>
           <e p="Tasks" t="Include">
             <e p="TaskSystem.cs" t="Include" />
           </e>
@@ -17,6 +21,7 @@
           <e p="World.cs" t="Include" />
         </e>
         <e p="MouseController.cs" t="Include" />
+        <e p="ReservedTileController.cs" t="Include" />
         <e p="WorkerController.cs" t="Include" />
         <e p="WorldController.cs" t="Include" />
         <e p="Ymit" t="Include">
@@ -38,6 +43,6 @@
       </e>
     </e>
     <e p="C:\Users\chris\.Rider2018.2\system\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\chris\.Rider2018.2\system\resharper-host\Local\Transient\ReSharperHost\v182\SolutionCaches\_Rts.-90146144.00" t="ExcludeRecursive" />
+    <e p="C:\Users\chris\.Rider2018.2\system\resharper-host\Local\Transient\ReSharperHost\v182\SolutionCaches\_Rts.600003695.00" t="ExcludeRecursive" />
   </component>
 </project>

@@ -7,6 +7,7 @@ public class WorkerController : MonoBehaviour
 {
     static public WorkerController current;
     public Sprite WorkerSprite;
+    public string WorkerLayer;
     
     protected class WorkerVisual
     {
@@ -74,6 +75,7 @@ public class WorkerController : MonoBehaviour
         
         SpriteRenderer sr = workerGO.AddComponent<SpriteRenderer>();
         sr.sprite = WorkerSprite;
+        sr.sortingLayerName = WorkerLayer;
         //sr.color = Color.red;
         
         workerVisuals.Add(new WorkerVisual(worker, workerGO));

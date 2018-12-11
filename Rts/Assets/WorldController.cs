@@ -1,27 +1,33 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Game;
 using Game.Task;
+using Game.Pathfinding;
 using UnityEditorInternal;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class WorldController : MonoBehaviour
 {
     static public WorldController current;
 
+    public static Action Create;
+    
     protected void Awake()
     {
         if (current == null) current = this;
     }
     
     private Game.World world;
-    // Probably want a sprite manager, or specific TileController, BuildingControllers to manage these
+    // Probably want a sprite manager, or specific TileController to manage this
     public Sprite TileSprite;
-
-    [SerializeField] private int width, height;
+    public string TileLayer;
+    
+    [SerializeField] private int width;
+    [SerializeField] private int height;
     
     public static readonly int TileSize = 32;
-
 
     public Game.World World
     {
@@ -50,9 +56,11 @@ public class WorldController : MonoBehaviour
                 
                 SpriteRenderer sr = tile.AddComponent<SpriteRenderer>();
                 sr.sprite = TileSprite;
+                sr.sortingLayerName = TileLayer;
                 sr.color = new Color(0.08f, 0.5f, 0.18f);
             }
         }
+
         BuildingController.current.Setup();
         WorkerController.current.Setup();
         // Probably want this to belong to a BuildingController
@@ -60,6 +68,10 @@ public class WorldController : MonoBehaviour
         // That function likely will be removed so this is okay temporary code.
         MouseController.Create();
         MouseController.OnClick += OnClick;
+        
+        
+        if (Create != null)
+            Create();
     }
 
     
@@ -91,36 +103,41 @@ public class WorldController : MonoBehaviour
         if (button == 0)
         {
             if (tile.Building != null) return;
-            int buildingTypeRandom = Random.Range(0, 2);
-            Building building = world.BuildPrototype(buildingTypeRandom == 0 ? BuildingType.HQ : BuildingType.BARRACKS,
-                buildingTypeRandom == 0 ? 3 : 2, 2);
+            BuildingType randomBuildingType = Random.Range(0, 2) == 0 ? BuildingType.HQ : BuildingType.BARRACKS;
+//            Building building = world.BuildPrototype(buildingTypeRandom == 0 ? BuildingType.HQ : BuildingType.BARRACKS,
+//                buildingTypeRandom == 0 ? 3 : 2, 2);
 
-            if (building == null) return;
+            if (world.CanPlaceBuilding(randomBuildingType, tile.X, tile.Y) == true)
+            {
+                Building building = world.CreateFromPrototype(randomBuildingType);
+                world.ReserveBuilding(building, tile);
+                world.TaskSystem.EnqueueTask(
+                    () => world.CanPlaceBuilding(building, tile.X, tile.Y)
+                        ? new BaseTask.BuildTask() {buildTile = tile, toBuild = building}
+                        : null);
+            }
+            //world.TaskSystem.AddTask(new BaseTask.BuildTask() {buildTile = tile, toBuild = building});
 
-            world.TaskSystem.AddTask(new BaseTask.BuildTask() {buildTile = tile, toBuild = building});
-            
 //            if (world.PlaceBuilding(building, tile) == false)
 //            {
 //                return;
 //            }
-
-            // Create blueprint building.
-            //CreateBuilding(building, tile);
         }
 
         if (button == 1)
         {
-            Building building = tile.Building;
-            if (building != null)
-            {
-                world.DestroyBuilding(building);
-            }
-
-            Worker worker = world.GetWorkerAt(tile.TileCoord);
-            if (worker != null)
-            {
-                world.DestroyWorker(worker);
-            }
+            world.TaskSystem.AddTask(new BaseTask.MoveToTask() {target = tile.TileCoord});
+//            Building building = tile.Building;
+//            if (building != null)
+//            {
+//                world.DestroyBuilding(building);
+//            }
+//
+//            Worker worker = world.GetWorkerAt(tile.TileCoord);
+//            if (worker != null)
+//            {
+//                world.DestroyWorker(worker);
+//            }
         }
 
         if (button == 2)

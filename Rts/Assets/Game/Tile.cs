@@ -10,6 +10,7 @@ namespace Game
         private int y;
 
         private Building building;
+        private int reserveID = -1;
 
         public int X
         {
@@ -39,6 +40,21 @@ namespace Game
         {
             get { return building; }
         }
+
+        public int ReserveId
+        {
+            get { return reserveID; }
+        }
+
+        public bool Walkable
+        {
+            get { return building == null; }
+        }
+
+        public bool IsAvailable(int reserveID)
+        {
+            return building == null && (this.reserveID!=-1 && this.reserveID != reserveID) == false;
+        }
         
         public Tile(int x, int y)
         {
@@ -46,9 +62,15 @@ namespace Game
             this.y = y;
         }
 
+        public void Reserve(int reserveID)
+        {
+            this.reserveID = reserveID;
+        }
+
         public void PlaceBuilding(Building building)
         {
             this.building = building;
+            reserveID = -1;
         }
 
         // technically we don't need this, could be replaced with PlaceBuilding(null)

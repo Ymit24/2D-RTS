@@ -18,6 +18,11 @@ namespace Game
         {
             return "<" + x + "," + y + ">";
         }
+
+        public TileCoord Rounded()
+        {
+            return new TileCoord(Mathf.Floor(x), Mathf.Floor(y));
+        }
         
         public static TileCoord operator +(TileCoord a, TileCoord b) { return new TileCoord(a.x + b.x, a.y + b.y); }
         public static TileCoord operator -(TileCoord a, TileCoord b) { return new TileCoord(a.x - b.x, a.y - b.y); }

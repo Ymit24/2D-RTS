@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Task;
 using UnityEditor.Rendering;
 using UnityEngine;
+using Game.Task;
+using Game.Pathfinding;
 
 namespace Game
 {
@@ -19,6 +20,9 @@ namespace Game
 
         private List<Worker> workers;
         private TaskSystem taskSystem;
+        private Pathfinder pathfinder;
+
+        private Dictionary<BuildingType, Building> buildingPrototypes;
 
         public int Width
         {
@@ -38,6 +42,14 @@ namespace Game
             }
         }
 
+        public Pathfinder Pathfinder
+        {
+            get
+            {
+                return pathfinder;
+            }
+        }
+        
         public World(int width, int height)
         {
             this.width = width;
@@ -55,7 +67,27 @@ namespace Game
             }
 
             taskSystem = new TaskSystem();
+            pathfinder = new Pathfinder(width,height,false);
+            buildingPrototypes = new Dictionary<BuildingType, Building>();
+            BuildPrototype(BuildingType.HQ, 3, 2.5f);
+            BuildPrototype(BuildingType.BARRACKS, 2, 1.0f);
+            
+            UpdatePathfindingGraph();
+            
             workers = new List<Worker>();
+        }
+
+        private void UpdatePathfindingGraph()
+        {
+            bool[,] obstacles = new bool[width, height];
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    obstacles[x, y] = tiles[x, y].Walkable == false;
+                }
+            }
+            pathfinder.WeightGraph(obstacles);
         }
 
         public Tile GetTileAt(TileCoord coord)
@@ -90,9 +122,17 @@ namespace Game
         }
 
         // this might need to be replaced with a building prototyping system
-        public Building BuildPrototype(BuildingType type, int size, float buildTime = 1)
+        public void BuildPrototype(BuildingType type, int size, float buildTime = 1)
         {
-            return new Building(type, size, buildTime);
+            if (buildingPrototypes.ContainsKey(type) == false)
+            {
+                buildingPrototypes.Add(type, new Building(type, size, buildTime));
+            }
+        }
+        
+        public Building CreateFromPrototype(BuildingType type)
+        {
+            return new Building(buildingPrototypes.ContainsKey(type) ? buildingPrototypes[type] : null);
         }
 
         public bool CanPlaceBuilding(Building building, int tileX, int tileY)
@@ -103,9 +143,51 @@ namespace Game
                 {
                     Tile tile = GetTileAt(i + tileX, j + tileY);
                     if (tile == null)
+                    {
                         return false;
-                    if (tile.Building != null)
+                    }
+
+                    if (tile.IsAvailable(building.BuildingId) == false)
+                    {
                         return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        
+        public bool CanPlaceBuilding(BuildingType type, int tileX, int tileY)
+        {
+            for (int i = 0; i < buildingPrototypes[type].Size; i++)
+            {
+                for (int j = 0; j < buildingPrototypes[type].Size; j++)
+                {
+                    Tile tile = GetTileAt(i + tileX, j + tileY);
+                    if (tile == null)
+                    {
+                        return false;
+                    }
+
+                    if (tile.Building != null || tile.ReserveId != -1)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public bool ReserveBuilding(Building building, Tile root)
+        {
+            if (CanPlaceBuilding(building, root.X, root.Y) == false) return false;
+            for (int i = 0; i < building.Size; i++)
+            {
+                for (int j = 0; j < building.Size; j++)
+                {
+                    Tile tile = GetTileAt(i + root.X, j + root.Y);
+                    tile.Reserve(building.BuildingId);
                 }
             }
 
@@ -133,6 +215,7 @@ namespace Game
             {
                 OnBuildingBuilt(building);
             }
+            UpdatePathfindingGraph();
             return true;
         }
 
@@ -151,6 +234,7 @@ namespace Game
             {
                 OnBuildingDestroyed(building);
             }
+            UpdatePathfindingGraph();
         }
 
         // Should be called from WorldController,
@@ -165,7 +249,7 @@ namespace Game
 
         public void CreateWorker(TileCoord position)
         {
-            Worker worker = new Worker(position, taskSystem);
+            Worker worker = new Worker(position, taskSystem, pathfinder);
             workers.Add(worker);
             if (OnWorkerCreated != null)
             {

@@ -7,6 +7,7 @@ public class BuildingController : MonoBehaviour
 {
     static public BuildingController current;
     public Sprite BuildingSprite, HQSprite, BXSprite;
+    public string BuildingLayer;
     
     protected class BuildingVisual
     {
@@ -80,6 +81,7 @@ public class BuildingController : MonoBehaviour
                 buildingGO.transform.SetParent(BuildingHolder.transform);
 
                 SpriteRenderer sr = buildingGO.GetComponent<SpriteRenderer>();
+                sr.sortingLayerName = BuildingLayer;
                 //sr.sprite = BuildingSprite;
                 if (building.Type == BuildingType.HQ)       sr.sprite = HQSprite;
                 if (building.Type == BuildingType.BARRACKS) sr.sprite = BXSprite;
