@@ -6,7 +6,7 @@ using UnityEngine;
 public class BuildingController : MonoBehaviour
 {
     static public BuildingController current;
-    public Sprite BuildingSprite, HQSprite, BXSprite;
+    public Sprite BuildingSprite, DefaultSprite, HQSprite, BXSprite, GMSprite;
     public string BuildingLayer;
     
     protected class BuildingVisual
@@ -82,9 +82,10 @@ public class BuildingController : MonoBehaviour
 
                 SpriteRenderer sr = buildingGO.GetComponent<SpriteRenderer>();
                 sr.sortingLayerName = BuildingLayer;
-                //sr.sprite = BuildingSprite;
+                sr.sprite = DefaultSprite;
                 if (building.Type == BuildingType.HQ)       sr.sprite = HQSprite;
                 if (building.Type == BuildingType.BARRACKS) sr.sprite = BXSprite;
+                if (building.Type == BuildingType.GOLDMINE) sr.sprite = GMSprite;
 //                if (building.Type == BuildingType.HQ)       sr.color = new Color(0.07f, 0f, 0.67f);
 //                if (building.Type == BuildingType.BARRACKS) sr.color = new Color(0f, 0.67f, 0.13f);
 

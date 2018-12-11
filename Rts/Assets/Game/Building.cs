@@ -1,6 +1,6 @@
 namespace Game
 {
-    public enum BuildingType { HQ, BARRACKS }
+    public enum BuildingType { HQ, BARRACKS, GOLDMINE }
     public class Building
     {
         protected static int CURRENTBUILDINGID = 0;

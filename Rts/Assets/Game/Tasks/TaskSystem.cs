@@ -4,40 +4,18 @@ using System.Collections.Generic;
 
 namespace Game.Task
 {
-    public class QueuedTask
-    {
-        private Func<BaseTask> tryGetTaskFunc;
-
-        public QueuedTask(Func<BaseTask> tryGetTaskFunc)
-        {
-            this.tryGetTaskFunc = tryGetTaskFunc;
-        }
-
-        public BaseTask TryDequeueTask()
-        {
-            return tryGetTaskFunc();
-        }
-    }
-        
-    public class BaseTask
-    {
-        public class BuildTask : BaseTask
-        {
-            public Tile buildTile;
-            public Building toBuild;
-        }
-
-        public class MoveToTask : BaseTask
-        {
-            public TileCoord target;
-        }
-    }
+    
     
     public class TaskSystem
     {
         private List<BaseTask> taskList;
         private List<QueuedTask> queuedTaskList;
 
+        public int TaskCount
+        {
+            get { return taskList.Count; }
+        }
+        
         public TaskSystem()
         {
             taskList = new List<BaseTask>();

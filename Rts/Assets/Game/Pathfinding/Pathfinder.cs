@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace Game.Pathfinding
         private int height;
 
         private bool fourWay;
+
+        public Action Repath;
 
         public Pathfinder(int width, int height, bool fourWay = false)
         {
@@ -40,6 +43,9 @@ namespace Game.Pathfinding
                     nodes[x, y].obstacle = obstacles[x, y];
                 }
             }
+
+            if (Repath != null)
+                Repath();
         }
         
         private void GenerateGraph()
@@ -69,6 +75,25 @@ namespace Game.Pathfinding
                     }
                 }
             }
+        }
+
+        public Tile[] NodePathToTileArray(Node[] nodes)
+        {
+            Tile[] tiles = new Tile[nodes.Length];
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Tile tile = World.current.GetTileAt(nodes[i].x, nodes[i].y);
+                if (tile != null)
+                {
+                    tiles[i] = tile;
+                }
+                else
+                {
+                    Ymit.UI.DebugFadeLabelMouse("Tile not found for coords: " + nodes[i].x + "," + nodes[i].y);
+                }
+            }
+
+            return tiles;
         }
         
         public Node[] Solve(TileCoord startCoord, TileCoord endCoord)

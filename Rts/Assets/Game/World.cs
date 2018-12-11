@@ -71,6 +71,7 @@ namespace Game
             buildingPrototypes = new Dictionary<BuildingType, Building>();
             BuildPrototype(BuildingType.HQ, 3, 2.5f);
             BuildPrototype(BuildingType.BARRACKS, 2, 1.0f);
+            BuildPrototype(BuildingType.GOLDMINE, 1, 0.5f);
             
             UpdatePathfindingGraph();
             

@@ -10,9 +10,12 @@
           <e p="Building.cs" t="Include" />
           <e p="Pathfinding" t="Include">
             <e p="Node.cs" t="Include" />
+            <e p="PathData.cs" t="Include" />
             <e p="Pathfinder.cs" t="Include" />
           </e>
           <e p="Tasks" t="Include">
+            <e p="QueuedTask.cs" t="Include" />
+            <e p="Tasks.cs" t="Include" />
             <e p="TaskSystem.cs" t="Include" />
           </e>
           <e p="Tile.cs" t="Include" />

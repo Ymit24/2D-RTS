@@ -29,8 +29,22 @@ namespace Game
         public static TileCoord operator *(TileCoord a, float scale) { return new TileCoord(a.x * scale, a.y * scale); }
         public static TileCoord operator /(TileCoord a, float scale) { return new TileCoord(a.x / scale, a.y / scale); }
 
-        public static bool operator ==(TileCoord a, TileCoord b) { return a.x == b.x && a.y == b.y; }
-        public static bool operator !=(TileCoord a, TileCoord b) { return a.x != b.x && a.y != b.y; }
+        public static bool operator ==(TileCoord a, TileCoord b)
+        {
+            bool aNull = object.ReferenceEquals(a, null);
+            bool bNull = object.ReferenceEquals(b, null);
+            if (aNull || bNull)
+            {
+                return aNull == bNull;
+            }
+
+            return a.x == b.x && a.y == b.y;
+        }
+
+        public static bool operator !=(TileCoord a, TileCoord b)
+        {
+            return !(a == b);
+        }
         
         public static float Magnitude(TileCoord a)
         {

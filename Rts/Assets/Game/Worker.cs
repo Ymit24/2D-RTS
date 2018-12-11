@@ -20,69 +20,30 @@ namespace Game
 		private TileCoord position;
 		private State state;
 
+		private Tile lastTile, tileMovingTo;
+		
 		private BaseTask currentTask;
 		private TaskSystem taskSystem;
 
-		public class PathData
-		{
-			private Pathfinder pathfinder;
-			private Node[] path;
-			private int pathProgress = 0;
-
-			public bool Finished
-			{
-				get
-				{
-					return pathProgress == path.Length;
-				}
-			}
-
-			public PathData(Pathfinder pathfinder)
-			{
-				this.pathfinder = pathfinder;
-			}
-
-			public void Step()
-			{
-				pathProgress++;
-			}
-
-			private TileCoord NodeToTileCoord(Node node)
-			{
-				return new TileCoord(node.x, node.y);
-			}
-
-			public TileCoord GetCurrentTileCoord()
-			{
-				return NodeToTileCoord(path[pathProgress]);
-			}
-			
-			public TileCoord GetDirection(TileCoord position)
-			{
-				return TileCoord.Normalize(GetCurrentTileCoord() - position);
-			}
-
-			public void Complete()
-			{
-				path = null;
-				pathProgress = 0;
-			}
-
-			public void Find(TileCoord start, TileCoord end)
-			{
-				path = pathfinder.Solve(start, end);
-			}
-
-			public bool ReadyToStep(TileCoord position)
-			{
-				return position == GetCurrentTileCoord();
-				//return (TileCoord.Distance(position, GetCurrentTileCoord()) < 0.1f);
-			}
-		}
-
 		private PathData path;
+		private bool needRepath;
 
-		private float buildTimer = 0;
+		protected enum GatherState
+		{
+			MovingToResourceLocation,
+			GatheringResource,
+			MovingToDropoffLocation,
+			DroppingResource
+		}
+		
+		protected struct StateData
+		{
+			public float buildTimer;
+			public GatherState gatherState;
+			public float gatherTimer;
+			public float dropingTimer;
+		}
+		private StateData stateData;
 
 		private float movePercentage = 0;
 
@@ -98,8 +59,10 @@ namespace Game
 		{
 			get
 			{
-				// Will eventually store current and next Tile to eliminate calling World.current.*
-				return World.current.GetTileAt(position);
+				if (path != null && path.Finished == false) return path.GetCurrentTile();
+				if (lastTile != null) return lastTile;
+				Ymit.UI.DebugFadeLabelMouse("Failed to retrieve tile!");
+				return null;
 			}
 		}
 
@@ -116,6 +79,12 @@ namespace Game
 			this.position = position;
 			this.taskSystem = taskSystem;
 			this.path = new PathData(pathfinder);
+
+			pathfinder.Repath += OnRepath;
+			this.lastTile = World.current.GetTileAt(position.Rounded());
+			this.tileMovingTo = lastTile;
+			
+			this.stateData = new StateData();
 		}
 
 		public void Tick(float deltaTime)
@@ -131,55 +100,78 @@ namespace Game
 					{
 						state = State.ExecutingTask;
 
-						if (currentTask is BaseTask.BuildTask) StartTask_Build(currentTask as BaseTask.BuildTask);
-						if (currentTask is BaseTask.MoveToTask) StartTask_MoveTo(currentTask as BaseTask.MoveToTask);
+						if (currentTask is BuildTask) StartTask_Build(currentTask as BuildTask);
+						if (currentTask is MoveToTask) StartTask_MoveTo(currentTask as MoveToTask);
+						if (currentTask is GatherTask) StartTask_Gather(currentTask as GatherTask);
 					}
 					break;
 				}
 				case State.ExecutingTask:
 				{
-					if (currentTask is BaseTask.BuildTask) HandleTask_Build(currentTask as BaseTask.BuildTask, deltaTime);
-					if (currentTask is BaseTask.MoveToTask) HandleTask_MoveTo(currentTask as BaseTask.MoveToTask, deltaTime);
+					if (currentTask is BuildTask) HandleTask_Build(currentTask as BuildTask, deltaTime);
+					if (currentTask is MoveToTask) HandleTask_MoveTo(currentTask as MoveToTask, deltaTime);
+					if (currentTask is GatherTask) HandleTask_Gather(currentTask as GatherTask, deltaTime);
 					break;
 				}	
 			}
 		}
 
-		protected void StartTask_Build(BaseTask.BuildTask buildTask)
+		protected void OnRepath()
+		{
+			path.Complete();
+			needRepath = true;
+		}
+		
+		void DoFindPath()
+		{
+			if (currentTask is BuildTask) path.Find(position.Rounded(), (currentTask as BuildTask).buildTile.TileCoord.Rounded());
+			if (currentTask is MoveToTask) path.Find(position.Rounded(), (currentTask as MoveToTask).target.Rounded());
+			if (currentTask is GatherTask)
+			{
+				switch (stateData.gatherState)
+				{
+					case GatherState.MovingToResourceLocation:
+					{
+						path.Find(position.Rounded(), (currentTask as GatherTask).resourceLocation.Rounded());
+						break;
+					}
+					case GatherState.MovingToDropoffLocation:
+					{
+						path.Find(position.Rounded(), (currentTask as GatherTask).dropOffLocation.Rounded());
+						break;
+					}
+				}
+			}
+
+			tileMovingTo = path.GetCurrentTile();
+		}
+
+		protected void StartTask_Build(BuildTask buildTask)
 		{
 			World.current.ReserveBuilding(buildTask.toBuild, buildTask.buildTile);
-			path.Find(position.Rounded(), buildTask.buildTile.TileCoord.Rounded());
+			DoFindPath();
+			//path.Find(position.Rounded(), buildTask.buildTile.TileCoord.Rounded());
 		}
 		
-		protected void StartTask_MoveTo(BaseTask.MoveToTask moveToTask)
+		protected void StartTask_MoveTo(MoveToTask moveToTask)
 		{
-			path.Find(position.Rounded(), moveToTask.target.Rounded());
+			DoFindPath();
+			//path.Find(position.Rounded(), moveToTask.target.Rounded());
+		}
+
+		protected void StartTask_Gather(GatherTask gatherTask)
+		{
+			SetGatherState(GatherState.MovingToResourceLocation);
 		}
 		
-		protected void HandleTask_Build(BaseTask.BuildTask buildTask, float deltaTime)
+		protected void HandleTask_Build(BuildTask buildTask, float deltaTime)
 		{
-//			if (World.current.CanPlaceBuilding(buildTask.toBuild, buildTask.buildTile.X, buildTask.buildTile.Y) == false)
-//			{
-//				taskSystem.EnqueueTask( () => World.current.CanPlaceBuilding(buildTask.toBuild, buildTask.buildTile.X, buildTask.buildTile.Y) ? buildTask : null );
-//				
-//				currentTask = null;
-//				state = State.WaitingForTask;
-//				buildTimer = 0;
-//						
-//				path = null;
-//				pathProgress = 0;
-//				
-//				return;
-//			}
 			TileCoord tileCoord = buildTask.buildTile.TileCoord;
-			if (path.Finished == false)
+			MoveTo(deltaTime);
+			if (position == tileCoord)
 			{
-				MoveTo(deltaTime);
-			}
-			else
-			{
-				buildTimer += deltaTime;
-				if (buildTimer >= buildTask.toBuild.BuildTime)
+				stateData.buildTimer += deltaTime;
+				if (stateData.buildTimer >= buildTask.toBuild.BuildTime)
 				{
 					// build building.
 					if (World.current.PlaceBuilding(buildTask.toBuild, World.current.GetTileAt(tileCoord)))
@@ -187,20 +179,16 @@ namespace Game
 						path.Complete();
 						CompleteTask();
 						
-						buildTimer = 0;
+						stateData.buildTimer = 0;
 					}
 				}
 			}
 		}
 		
 		
-		protected void HandleTask_MoveTo(BaseTask.MoveToTask moveToTask, float deltaTime)
+		protected void HandleTask_MoveTo(MoveToTask moveToTask, float deltaTime)
 		{
-			if (path.Finished == false)
-			{
-				MoveTo(deltaTime);
-			}
-			else 
+			if (MoveTo(deltaTime) && position == moveToTask.target)
 			{
 				path.Complete();
 
@@ -208,43 +196,150 @@ namespace Game
 			}
 		}
 
+		protected void HandleTask_Gather(GatherTask gatherTask, float deltaTime)
+		{
+			switch (stateData.gatherState)
+			{
+				case GatherState.MovingToResourceLocation:
+				{
+					if (MoveTo(deltaTime) && position == gatherTask.resourceLocation)
+					{
+						path.Complete();
+						SetGatherState(GatherState.GatheringResource);
+					}
+					break;
+				}
+				case GatherState.GatheringResource:
+				{
+					stateData.gatherTimer += deltaTime;
+					if (stateData.gatherTimer >= 2) // don't hardcode gather time!
+					{
+						SetGatherState(GatherState.MovingToDropoffLocation);
+					}
+					break;
+				}
+				case GatherState.MovingToDropoffLocation:
+				{
+					if (MoveTo(deltaTime) && position == gatherTask.dropOffLocation)
+					{
+						path.Complete();
+						SetGatherState(GatherState.DroppingResource);
+					}
+					break;
+				}
+				case GatherState.DroppingResource:
+				{
+					stateData.dropingTimer += deltaTime;
+					if (stateData.dropingTimer >= 2) // don't hardcode drop time!
+					{
+						CompleteTask();
+					}
+					break;
+				}
+			}
+		}
+
+		protected void SetGatherState(GatherState newState)
+		{
+			if ((currentTask is GatherTask) == false) return;
+			GatherTask gatherTask = currentTask as GatherTask;
+			Ymit.UI.DebugFadeLabelMouse("Updated gather state! " + newState.ToString());
+			stateData.gatherState = newState;
+			switch (stateData.gatherState)
+			{
+				case GatherState.MovingToResourceLocation:
+				{
+					//path.Find(position.Rounded(), gatherTask.resourceLocation.Rounded());
+					DoFindPath();
+					break;
+				}
+				case GatherState.GatheringResource:
+				{
+					// stateData.GatheredResources = 0;
+					stateData.gatherTimer = 0;
+					break;
+				}
+				case GatherState.MovingToDropoffLocation:
+				{
+					//path.Find(position.Rounded(), gatherTask.dropOffLocation.Rounded());
+					DoFindPath();
+					break;
+				}
+				case GatherState.DroppingResource:
+				{
+					stateData.dropingTimer = 0;
+					break;
+				}
+			}
+		}
+
 		protected void CompleteTask()
-		{			
+		{
 			currentTask = null;
+			movePercentage = 0;
 			state = State.WaitingForTask;
+			Ymit.UI.DebugFadeLabelMouse("Completed Task!");
 		}
 
 		private float lerp(float a, float b, float t)
 		{
 			return a + (b - a) * t;
 		}
-		
-		private void MoveTo(float deltaTime)
+
+		private float clamp(float x, float min, float max)
 		{
-			if (path == null) return;
-			if (path.Finished) return;
+			if (x < min)
+				return min;
+			else if (x > max)
+				return max;
+			else
+				return x;
+		}
+		
+		private bool MoveTo(float deltaTime)
+		{
+//			if (path == null) return;
+//			if (path.Finished) return;
 			
-			if (path.ReadyToStep(position) == false)
+			//if (path.ReadyToStep(position) == false)
+
+			if (tileMovingTo != null)
 			{
+				TileCoord c = tileMovingTo.TileCoord;
+
 				movePercentage += deltaTime * MoveSpeed;
-				TileCoord c = path.GetCurrentTileCoord();
+				movePercentage = clamp(movePercentage, 0, 1);
+
 				float x = lerp(position.x, c.x, movePercentage);
 				float y = lerp(position.y, c.y, movePercentage);
 				position.x = x;
 				position.y = y;
-//				TileCoord directionToMove = path.GetDirection(position);
-//				position += directionToMove * MoveSpeed * deltaTime;
 			}
-			else
+
+			bool finishedMove = movePercentage >= 1;
+			if (finishedMove)
 			{
-//				position = path.GetCurrentTileCoord();
-				path.Step();
 				movePercentage = 0;
+				
+				lastTile = tileMovingTo;
+				if (needRepath)
+				{
+					DoFindPath();
+					needRepath = false;
+				}
+				else
+				{
+					path.Step();
+					tileMovingTo = path.GetCurrentTile();
+				}
+
 			}
 			if (OnMove != null)
 			{
 				OnMove(this);
 			}
+
+			return finishedMove;
 		}
 	}
 }

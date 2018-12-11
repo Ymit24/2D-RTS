@@ -88,10 +88,24 @@ public class WorldController : MonoBehaviour
 
     protected void Update()
     {
-        world.Tick(Time.deltaTime);
+        world.Tick(Time.fixedDeltaTime);
+    }
+
+    private int buildIndex = 0;
+    public void SetBuildIndex(int index)
+    {
+        buildIndex = index;
+    }
+
+    private int action = 0;
+
+    public void SetAction(int action)
+    {
+        this.action = action;
     }
     
     // Temporary debug code, okay for now.
+    private GatherTask currentGatherTask;
     protected void OnClick(Vector2 position, int button, bool down)
     {
         if (down == false) return;
@@ -102,47 +116,97 @@ public class WorldController : MonoBehaviour
         if (tile == null) return;
         if (button == 0)
         {
-            if (tile.Building != null) return;
-            BuildingType randomBuildingType = Random.Range(0, 2) == 0 ? BuildingType.HQ : BuildingType.BARRACKS;
-//            Building building = world.BuildPrototype(buildingTypeRandom == 0 ? BuildingType.HQ : BuildingType.BARRACKS,
-//                buildingTypeRandom == 0 ? 3 : 2, 2);
-
-            if (world.CanPlaceBuilding(randomBuildingType, tile.X, tile.Y) == true)
+            switch (action)
             {
-                Building building = world.CreateFromPrototype(randomBuildingType);
-                world.ReserveBuilding(building, tile);
-                world.TaskSystem.EnqueueTask(
-                    () => world.CanPlaceBuilding(building, tile.X, tile.Y)
-                        ? new BaseTask.BuildTask() {buildTile = tile, toBuild = building}
-                        : null);
-            }
-            //world.TaskSystem.AddTask(new BaseTask.BuildTask() {buildTile = tile, toBuild = building});
+                case 0:
+                {
+                    if (tile.Building != null) return;
+                    BuildingType buildingType = BuildingType.HQ;
+                    switch (buildIndex)
+                    {
+                        case 0:
+                            buildingType = BuildingType.HQ;
+                            break;
+                        case 1:
+                            buildingType = BuildingType.BARRACKS;
+                            break;
+                        case 2:
+                            buildingType = BuildingType.GOLDMINE;
+                            break;
+                    }
 
-//            if (world.PlaceBuilding(building, tile) == false)
-//            {
-//                return;
-//            }
+                    if (world.CanPlaceBuilding(buildingType, tile.X, tile.Y) == true)
+                    {
+                        Building building = world.CreateFromPrototype(buildingType);
+                        world.ReserveBuilding(building, tile);
+                        world.TaskSystem.EnqueueTask(
+                            () => world.CanPlaceBuilding(building, tile.X, tile.Y)
+                                ? new BuildTask() {buildTile = tile, toBuild = building}
+                                : null);
+                    }
+
+                    break;
+                }
+                case 1:
+                   world.TaskSystem.AddTask(new MoveToTask() {target = tile.TileCoord});
+                   break;
+               case 2:
+                   world.CreateWorker(tile.TileCoord);
+                   break;
+               case 3:
+                   // Gather task
+                   if (currentGatherTask == null)
+                   {
+                       currentGatherTask = new GatherTask();
+                       Ymit.UI.DebugFadeLabelMouse("Created gather task!");
+                       
+                   }
+                   else if (currentGatherTask.resourceLocation == null)
+                   {
+                       if (tile.Building != null)
+                       {
+                           if (tile.Building.Type == BuildingType.GOLDMINE)
+                           {
+                               currentGatherTask.resourceLocation = tile.TileCoord - new TileCoord(0,1);
+                               Ymit.UI.DebugFadeLabelMouse("Set resource location!");
+                           }
+                       }
+                   }
+                   else if (currentGatherTask.resourceLocation != null && currentGatherTask.dropOffLocation == null)
+                   {
+                       if (tile.Building != null && tile.Building.Type == BuildingType.HQ)
+                       {
+                           currentGatherTask.dropOffLocation = tile.Building.RootTile.TileCoord - new TileCoord(0,1);
+                           Ymit.UI.DebugFadeLabelMouse("Set drop off location!");
+                       }
+                   }
+                   else if (currentGatherTask.resourceLocation != null && currentGatherTask.dropOffLocation != null)
+                   {
+                       //world.TaskSystem.AddTask(currentGatherTask);
+                       world.TaskSystem.EnqueueTask(() => world.TaskSystem.TaskCount == 0 ? currentGatherTask : null);
+                       //currentGatherTask = null;
+                       Ymit.UI.DebugFadeLabelMouse("Added task!");
+                   }
+                   break;
+               case 4: // destroy
+                   Worker worker = world.GetWorkerAt(tile.TileCoord);
+                   if (worker != null)
+                   {
+                       world.DestroyWorker(worker);
+                   }
+
+                   Building b = tile.Building;
+                   if (b != null)
+                   {
+                       world.DestroyBuilding(b);
+                   }
+                   break;
+            }
         }
 
         if (button == 1)
         {
-            world.TaskSystem.AddTask(new BaseTask.MoveToTask() {target = tile.TileCoord});
-//            Building building = tile.Building;
-//            if (building != null)
-//            {
-//                world.DestroyBuilding(building);
-//            }
-//
-//            Worker worker = world.GetWorkerAt(tile.TileCoord);
-//            if (worker != null)
-//            {
-//                world.DestroyWorker(worker);
-//            }
-        }
-
-        if (button == 2)
-        {
-            world.CreateWorker(tile.TileCoord);
+            currentGatherTask = null;
         }
     }
 }
