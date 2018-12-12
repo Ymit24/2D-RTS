@@ -12,7 +12,7 @@ public class WorldController : MonoBehaviour
 {
     static public WorldController current;
 
-    public static Action Create;
+    public static Action OnCreate;
     
     protected void Awake()
     {
@@ -70,8 +70,8 @@ public class WorldController : MonoBehaviour
         MouseController.OnClick += OnClick;
         
         
-        if (Create != null)
-            Create();
+        if (OnCreate != null)
+            OnCreate();
     }
 
     

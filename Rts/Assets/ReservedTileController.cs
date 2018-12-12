@@ -15,7 +15,7 @@ public class ReservedTileController : MonoBehaviour
 
 	void Awake()
 	{
-		WorldController.Create += OnCreate;
+		WorldController.OnCreate += OnCreate;
 	}
 	
 	void OnCreate ()

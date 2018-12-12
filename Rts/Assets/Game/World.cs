@@ -122,6 +122,11 @@ namespace Game
             return null;
         }
 
+        public Worker[] GetWorkers()
+        {
+            return workers.ToArray();
+        }
+        
         // this might need to be replaced with a building prototyping system
         public void BuildPrototype(BuildingType type, int size, float buildTime = 1)
         {

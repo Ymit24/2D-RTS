@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.UIElements;
+
 namespace Game
 {
     public enum BuildingType { HQ, BARRACKS, GOLDMINE }
@@ -54,6 +56,7 @@ namespace Game
             }
         }
 
+        // maybe make this a static 'CreateBuildingFromPrototype' function that calls private constructor
         public Building(Building copy)
         {
             this.type = copy.type;
@@ -63,13 +66,14 @@ namespace Game
             this.buildingID = CURRENTBUILDINGID++;
         }
         
+        // maybe make this a static 'CreateBuildingPrototype' function that calls private constructor
         public Building(BuildingType type, int size, float buildTime = 1)
         {
             this.type = type;
             this.size = size;
             this.buildTime = buildTime;
 
-            this.buildingID = CURRENTBUILDINGID++;
+            this.buildingID = CURRENTBUILDINGID++; // probably don't need this for prototypes
         }
         
         public void PlaceOnTiles(Tile[] tiles)

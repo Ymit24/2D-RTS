@@ -148,9 +148,8 @@ namespace Game
 
 		protected void StartTask_Build(BuildTask buildTask)
 		{
-			World.current.ReserveBuilding(buildTask.toBuild, buildTask.buildTile);
+			//World.current.ReserveBuilding(buildTask.toBuild, buildTask.buildTile);
 			DoFindPath();
-			//path.Find(position.Rounded(), buildTask.buildTile.TileCoord.Rounded());
 		}
 		
 		protected void StartTask_MoveTo(MoveToTask moveToTask)
