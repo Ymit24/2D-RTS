@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Game
 {
+    [Serializable]
     public class TileCoord
     {
         public float x;

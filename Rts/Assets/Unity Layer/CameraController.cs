@@ -13,7 +13,7 @@ public class CameraController : MonoBehaviour
         if (Input.GetKey(KeyCode.S)) { vel.y -= 1; }
         if (Input.GetKey(KeyCode.D)) { vel.x += 1; }
         
-        transform.Translate(vel * PanSpeed * Time.deltaTime);
+        transform.Translate(vel * PanSpeed * (Input.GetKey(KeyCode.LeftShift) ? 2 : 1) * Time.deltaTime);
 
         Camera.main.orthographicSize = Camera.main.orthographicSize * (1 + -1 * Input.GetAxis("Mouse ScrollWheel"));
     }

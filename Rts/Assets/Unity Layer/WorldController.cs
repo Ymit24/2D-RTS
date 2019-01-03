@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Game;
 using Game.Task;
 using Game.Pathfinding;
+using UnityEditor.VersionControl;
 using UnityEditorInternal;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -66,7 +67,7 @@ public class WorldController : MonoBehaviour
         // Probably want this to belong to a BuildingController
         
         // That function likely will be removed so this is okay temporary code.
-        MouseController.Create();
+        MouseController.CreateIfNeeded();
         MouseController.OnClick += OnClick;
         
         
@@ -77,14 +78,22 @@ public class WorldController : MonoBehaviour
     
 
     // Probably want this to belong to a Utils class somewhere
-    protected TileCoord ScreenToTileCoords(Vector2 position)
+    public static TileCoord ScreenToTileCoordsRounded(Vector2 position)
     {
-        Vector2 mouse = (Vector2) Camera.main.ScreenToWorldPoint(position) + (Vector2.one * TileSize / 2);
-        int tileX = (int) (Mathf.Floor(mouse.x / TileSize));
-        int tileY = (int) (Mathf.Floor(mouse.y / TileSize));
-        return new TileCoord(tileX, tileY);
+        return WorldToTileCoordsRounded(Ymit.Utils.ScreenToWorld(position));
+//        Vector2 mouse = (Vector2) Camera.main.ScreenToWorldPoint(position) + (Vector2.one * TileSize / 2);
+//        int tileX = (int) (Mathf.Floor(mouse.x / TileSize));
+//        int tileY = (int) (Mathf.Floor(mouse.y / TileSize));
+//        return new TileCoord(tileX, tileY);
     }
 
+    public static TileCoord WorldToTileCoordsRounded(Vector2 position)
+    {
+        Vector2 pos = position + (Vector2.one * TileSize / 2);
+        int tileX = (int) (Mathf.Floor(pos.x / TileSize));
+        int tileY = (int) (Mathf.Floor(pos.y / TileSize));
+        return new TileCoord(tileX, tileY);
+    }
 
     protected void Update()
     {
@@ -108,9 +117,147 @@ public class WorldController : MonoBehaviour
     private GatherTask currentGatherTask;
     protected void OnClick(Vector2 position, int button, bool down)
     {
+        if (down == false || button != 1) return;
+        TileCoord tileCoord = ScreenToTileCoordsRounded(position);
+        Tile tile = world.GetTileAt((int)tileCoord.x, (int)tileCoord.y);
+
+        if (action == 0)
+        {
+            if (tile.Building != null) return;
+            BuildingType buildingType = BuildingType.HQ;
+            switch (buildIndex)
+            {
+                case 0:
+                    buildingType = BuildingType.HQ;
+                    break;
+                case 1:
+                    buildingType = BuildingType.BARRACKS;
+                    break;
+                case 2:
+                    buildingType = BuildingType.GOLDMINE;
+                    break;
+            }
+
+            if (world.CanPlaceBuilding(buildingType, tile.X, tile.Y) == true)
+            {
+                Building building = world.CreateFromPrototype(buildingType);
+                world.ReserveBuilding(building, tile);
+                Worker[] selectedWorkers = SelectionBoxController.current.GetSelectedWorkers();
+                if (selectedWorkers != null && selectedWorkers.Length > 0)
+                {
+                    selectedWorkers[0].LocalTaskSystem.EnqueueTask(() =>
+                        world.CanPlaceBuilding(building, tile.X, tile.Y)
+                            ? new BuildTask() {buildTile = tile, toBuild = building}
+                            : null);
+                }
+                else
+                {
+                    world.TaskSystem.EnqueueTask(
+                        () => world.CanPlaceBuilding(building, tile.X, tile.Y)
+                            ? new BuildTask() {buildTile = tile, toBuild = building}
+                            : null);
+                }
+//                EnqueueTaskSelectionSensitive(new QueuedTask(() => world.CanPlaceBuilding(building, tile.X, tile.Y)
+//                    ? new BuildTask() {buildTile = tile, toBuild = building}
+//                    : null));
+//                world.TaskSystem.EnqueueTask(
+//                    () => world.CanPlaceBuilding(building, tile.X, tile.Y)
+//                        ? new BuildTask() {buildTile = tile, toBuild = building}
+//                        : null);
+            }
+
+        }
+        
+        if (action == 1)
+        {
+            if (tile != null)
+            {
+                MoveToTask task = new MoveToTask() {target = tile.TileCoord};
+                AddTaskSelectionSensitive(task);
+            }
+        }
+
+        if (action == 2)
+        {
+            if (tile != null)
+            {
+                /*
+                 * interface INetServer {
+                 *   void SendToClient(NetMsg);
+                 * }
+                 * interface INetClient {
+                 *   void SendToServer(NetMsg);
+                 *   void Process();
+                 *   void ReceiveMessage(NetMsg);
+                 * }
+                 * class UnityClient : INetClient {
+                 *   void Process() {
+                 *    ....
+                 *   }
+                 * }
+                 * class SocketClient : INetClient {
+                 *   void Process() {
+                 *     .. do socket things, probably involves threads for async behavior
+                 *   }
+                 * }
+                 * INetClient client;
+                 * // .. set this somewhere
+                 * client.SendToServer(...); // doesn't matter if we set it to use sockets or unity's llapi
+                 */
+                // Net_CreateWorker msg = new Net_CreateWorker(tile.TileCoord);
+                // NetClient.SendToServer(msg);
+                // NetClient.ReceiveMessage(msg); // simulating receiving it, in order to reduce latency
+                // this would run within NetClient.ReceiveMessage_CreateWorker(Net_CreateWorker)
+                world.CreateWorker(tile.TileCoord);
+            }
+        }
+
+        if (action == 5)
+        {
+            if (tile != null)
+            {
+                world.CreateCombat(tile.TileCoord);
+            }
+        }
+    }
+
+    private void EnqueueTaskSelectionSensitive(QueuedTask task)
+    {
+        Worker[] selectedWorkers = SelectionBoxController.current.GetSelectedWorkers();
+        if (selectedWorkers != null && selectedWorkers.Length > 0)
+        {
+            for (int i = 0; i < selectedWorkers.Length; i++)
+            {
+                selectedWorkers[i].LocalTaskSystem.EnqueueTask(task);
+            }
+        }
+        else
+        {
+            world.TaskSystem.EnqueueTask(task);                        
+        }
+    }
+    
+    private void AddTaskSelectionSensitive(BaseTask task)
+    {
+        Worker[] selectedWorkers = SelectionBoxController.current.GetSelectedWorkers();
+        if (selectedWorkers != null && selectedWorkers.Length > 0)
+        {
+            for (int i = 0; i < selectedWorkers.Length; i++)
+            {
+                selectedWorkers[i].LocalTaskSystem.AddTask(task);
+            }
+        }
+        else
+        {
+            world.TaskSystem.AddTask(task);                        
+        }
+    }
+    /*
+    private void OldOnClick(Vector2 position, int button, bool down)
+    {
         if (down == false) return;
         
-        TileCoord tileCoord = ScreenToTileCoords(position);
+        TileCoord tileCoord = ScreenToTileCoordsRounded(position);
         Tile tile = world.GetTileAt((int)tileCoord.x, (int)tileCoord.y);
         
         if (tile == null) return;
@@ -209,4 +356,5 @@ public class WorldController : MonoBehaviour
             currentGatherTask = null;
         }
     }
+    */
 }

@@ -9,23 +9,29 @@
         <e p="DummyNetworkUpdater.cs" t="Include" />
         <e p="Game" t="Include">
           <e p="Building.cs" t="Include" />
+          <e p="Combat.cs" t="Include" />
           <e p="Pathfinding" t="Include">
             <e p="Node.cs" t="Include" />
             <e p="PathData.cs" t="Include" />
             <e p="Pathfinder.cs" t="Include" />
           </e>
-          <e p="Tasks" t="Include">
+          <e p="Task" t="Include">
             <e p="QueuedTask.cs" t="Include" />
             <e p="Tasks.cs" t="Include" />
             <e p="TaskSystem.cs" t="Include" />
           </e>
           <e p="Tile.cs" t="Include" />
           <e p="TileCoord.cs" t="Include" />
+          <e p="Unit.cs" t="Include" />
+          <e p="Utils" t="Include">
+            <e p="Utils.cs" t="Include" />
+          </e>
           <e p="Worker.cs" t="Include" />
           <e p="World.cs" t="Include" />
         </e>
         <e p="MouseController.cs" t="Include" />
         <e p="ReservedTileController.cs" t="Include" />
+        <e p="SelectionBoxController.cs" t="Include" />
         <e p="WorkerController.cs" t="Include" />
         <e p="WorldController.cs" t="Include" />
         <e p="Ymit" t="Include">

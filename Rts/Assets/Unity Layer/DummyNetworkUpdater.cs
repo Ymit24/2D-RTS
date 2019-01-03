@@ -19,18 +19,19 @@ public class DummyNetworkUpdater : MonoBehaviour {
 		world.OnWorkerCreated += OnWorkerCreated;
 		world.OnWorkerDestroyed += OnWorkerDestroyed;
 
-		for (int x = 0; x < world.Width; x++)
-		{
-			for (int y = 0; y < world.Height; y++)
-			{
-				Tile tile = world.GetTileAt(x, y);
-				if (tile != null)
-				{
-					tile.OnReserve += OnTileReserved;
-					tile.OnUnreserve += OnTileUnreserved;
-				}
-			}
-		}
+		// TEST CODE, NO LONGER VALID
+//		for (int x = 0; x < world.Width; x++)
+//		{
+//			for (int y = 0; y < world.Height; y++)
+//			{
+//				Tile tile = world.GetTileAt(x, y);
+//				if (tile != null)
+//				{
+//					tile.OnReserve += OnTileReserved;
+//					tile.OnUnreserve += OnTileUnreserved;
+//				}
+//			}
+//		}
 	}
 
 	private void OnTileUnreserved(Tile tile)
@@ -67,8 +68,9 @@ public class DummyNetworkUpdater : MonoBehaviour {
 		worker.OnMove -= OnWorkerMove;
 	}
 
-	private void OnWorkerMove(Worker worker)
+	private void OnWorkerMove(Unit unit)
 	{
+		if (unit is Worker == false) return;
 		//Debug.Log("Worker moved to " + worker.Position.ToString());
 	}
 }

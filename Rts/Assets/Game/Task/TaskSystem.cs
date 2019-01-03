@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 namespace Game.Task
 {
-    
-    
     public class TaskSystem
     {
         private List<BaseTask> taskList;

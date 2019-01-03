@@ -63,19 +63,15 @@ namespace Game
             this.y = y;
         }
 
-        public Action<Tile, int> OnReserve;
-        public Action<Tile> OnUnreserve;
         public void Reserve(int reserveID)
         {
             this.reserveID = reserveID;
-            OnReserve(this, reserveID);
         }
 
         public void PlaceBuilding(Building building)
         {
             this.building = building;
             reserveID = -1;
-            OnUnreserve(this);
         }
 
         // technically we don't need this, could be replaced with PlaceBuilding(null)

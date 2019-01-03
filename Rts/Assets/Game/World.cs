@@ -13,7 +13,8 @@ namespace Game
         static public World current;
         public Action<Building> OnBuildingBuilt, OnBuildingDestroyed;
         public Action<Worker> OnWorkerCreated, OnWorkerDestroyed;
-
+        public Action<Combat> OnCombatCreated, OnCombatDestroyed;
+        
         Tile[,] tiles;
         int width;
         int height;
@@ -21,6 +22,8 @@ namespace Game
         private List<Worker> workers;
         private TaskSystem taskSystem;
         private Pathfinder pathfinder;
+
+        // private List<INetClient> clients;
 
         private Dictionary<BuildingType, Building> buildingPrototypes;
 
@@ -275,5 +278,21 @@ namespace Game
                 OnWorkerDestroyed(worker);
             }
         }
+
+        public void CreateCombat(TileCoord position)
+        {
+            
+        }
     }
+
+    /*
+    
+    class NetWorld : World {
+        private INetServer server;
+        public override void CreateWorker(TileCoord coord) : base(coord) {
+            server.Send(...);
+        }
+    }
+
+    */
 }

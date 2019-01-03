@@ -52,8 +52,10 @@ public class WorkerController : MonoBehaviour
         Game.World.current.OnWorkerDestroyed += DestroyWorker;
     }
 
-    protected void OnWorkerMove(Worker worker)
+    protected void OnWorkerMove(Unit unit)
     {
+        if (unit is Worker == false) return;
+        Worker worker = unit as Worker;
         for (int i = 0; i < workerVisuals.Count; i++)
         {
             if (workerVisuals[i].Worker == worker)
