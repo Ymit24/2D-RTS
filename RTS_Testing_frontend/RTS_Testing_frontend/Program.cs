@@ -58,7 +58,7 @@ class Program
 
             server.AddCallback(NetOP.JoinedLobby, (NetMsg msg, short token) => {
                 Net_JoinedLobby m = (Net_JoinedLobby)msg;
-                Console.WriteLine("Name {0}, Token {1}", m.Name, m.Token);
+                Console.WriteLine("Name {0}, Token {1}, Ready {2}", m.Client.Name, m.Client.Token, m.Client.Ready);
             });
 
             lobbyServer = new LobbyServer(server);

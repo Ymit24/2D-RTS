@@ -51,12 +51,11 @@ namespace Game.Lobby
         private void OnClientJoinedLobby(NetMsg msg, short token)
         {
             Net_JoinedLobby m = (Net_JoinedLobby)msg;
-            ClientData c = new ClientData(m.Name, m.Token);
-            clientData.Add(c);
+            clientData.Add(m.Client);
             server.BroadcastEx(m, token);
             if (OnClientAdded != null)
             {
-                OnClientAdded(c);
+                OnClientAdded(m.Client);
             }
         }
 

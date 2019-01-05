@@ -1,4 +1,5 @@
-﻿namespace Game.Net.NetMessages
+﻿using Game.Lobby;
+namespace Game.Net.NetMessages
 {
     [System.Serializable]
     public class Net_JoinedLobby : NetMsg
@@ -7,8 +8,6 @@
         {
             OP = NetOP.JoinedLobby;
         }
-
-        public short Token { get; set; }
-        public string Name { get; set; }
+        public ClientData Client;
     }
 }

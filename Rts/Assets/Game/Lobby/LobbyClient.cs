@@ -73,6 +73,11 @@ namespace Game.Lobby
             client.RemoveCallback(NetOP.ReceiveClients, OnRecieveClients);
         }
 
+        /// <summary>
+        /// This function sets the local clients ready status
+        /// AND sends a NetMsg to the server to update it.
+        /// </summary>
+        /// <param name="ready"></param>
         public void SetReady(bool ready)
         {
             this.ready = ready;
@@ -86,8 +91,7 @@ namespace Game.Lobby
             client.SendToServer(new Net_RequestClients());
             Net_JoinedLobby m = new Net_JoinedLobby()
             {
-                Token = client.GetToken(),
-                Name = name
+                Client = new ClientData(name, client.GetToken())
             };
             client.Receive(m);
             client.SendToServer(m);
@@ -96,12 +100,11 @@ namespace Game.Lobby
         private void OnJoinedLobby(NetMsg msg)
         {
             Net_JoinedLobby m = (Net_JoinedLobby)msg;
-            ClientData c = new ClientData(m.Name, m.Token);
-            clientData.Add(c);
+            clientData.Add(m.Client);
 
             if (OnNewClientJoined != null)
             {
-                OnNewClientJoined(c);
+                OnNewClientJoined(m.Client);
             }
         }
 
@@ -154,8 +157,7 @@ namespace Game.Lobby
                 client.Receive(
                     new Net_JoinedLobby()
                     {
-                        Token = m.Clients[i].Token,
-                        Name = m.Clients[i].Name
+                        Client = m.Clients[i]
                     }
                 );
             }
