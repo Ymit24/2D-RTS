@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Game.Net
 {
@@ -12,6 +10,10 @@ namespace Game.Net
         void Stop();
         void Process();
         void Broadcast(NetMsg msg);
-        void Receive(NetMsg msg);
+        void BroadcastEx(NetMsg msg, short token);
+        void SendToClient(NetMsg msg, short token);
+        void AddCallback(NetOP op, Action<NetMsg, short> action);
+        void RemoveCallback(NetOP op, Action<NetMsg, short> action);
+
     }
 }

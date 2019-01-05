@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering;
-using UnityEngine;
+//using UnityEngine;
 using Game.Task;
 using Game.Pathfinding;
 
@@ -22,8 +21,6 @@ namespace Game
         private List<Worker> workers;
         private TaskSystem taskSystem;
         private Pathfinder pathfinder;
-
-        // private List<INetClient> clients;
 
         private Dictionary<BuildingType, Building> buildingPrototypes;
 

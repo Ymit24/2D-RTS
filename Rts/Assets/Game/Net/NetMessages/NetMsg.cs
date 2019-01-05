@@ -1,16 +1,24 @@
 ﻿namespace Game.Net
 {
-    public static class NetOP
+    public enum NetOP : byte
     {
-        public const int None = 0;
+        None = 0,
+        RequestToken = 1,
+        AssignToken = 2,
+        JoinedLobby = 3,
+        ChangedReady = 4,
+        StartGame = 5,
 
-        public const int AssignToken = 1;
+        RequestClients = 6,
+        ReceiveClients = 7,
+
+        Disconnect = 8,
     }
 
     [System.Serializable]
     public abstract class NetMsg
     {
-        public byte OP { set; get; }
+        public NetOP OP { set; get; }
 
         public NetMsg()
         {

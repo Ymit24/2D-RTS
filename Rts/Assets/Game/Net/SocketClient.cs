@@ -12,13 +12,26 @@ namespace Game.Net
     using NetMessages;
     public class SocketClient : INetClient
     {
-        private short Token;
+        private short token = -1;
         private TcpClient server;
+        public Dictionary<NetOP, Action<NetMsg>> OnNetMsgReceived { get; set; }
+
+        public short GetToken()
+        {
+            return token;
+        }
+
+        public bool HasToken()
+        {
+            return token != -1;
+        }
 
         public void ConnectToServer()
         {
+            OnNetMsgReceived = new Dictionary<NetOP, Action<NetMsg>>();
+
             server = new TcpClient("127.0.0.1", 8090);
-            Ymit.UI.DebugFadeLabelMouse("Connected to server");
+            Log("Connected to server");
         }
 
         public void Disconnect()
@@ -45,17 +58,25 @@ namespace Game.Net
             if (msg.OP == NetOP.AssignToken)
             {
                 Net_AssignToken nat = (Net_AssignToken)msg;
-                Ymit.UI.DebugFadeLabelMouse("Client: Received token: " + nat.Token);
+                this.token = nat.Token;
+                Log("Received token: " + nat.Token);
             }
-            else
+            if (OnNetMsgReceived.ContainsKey(msg.OP))
             {
-                Ymit.UI.DebugFadeLabelMouse("Client: Didn't understand message type.");
+                OnNetMsgReceived[msg.OP](msg);
             }
         }
 
         public void Process() {
             byte[] recBuffer = new byte[1024];
             NetworkStream stream = server.GetStream();
+
+            if (server.Client.Poll(1000, SelectMode.SelectRead) &
+                        (server.Client.Available == 0))
+            {
+                Log("server disconnected");
+            }
+
             if (!stream.DataAvailable)
             {
                 return;
@@ -68,6 +89,40 @@ namespace Game.Net
             NetMsg msg = (NetMsg)formatter.Deserialize(ms);
 
             Receive(msg);
+        }
+
+        public void AddCallback(NetOP op, Action<NetMsg> action)
+        {
+            if (OnNetMsgReceived != null)
+            {
+                if (OnNetMsgReceived.ContainsKey(op))
+                {
+                    OnNetMsgReceived[op] += action;
+                }
+                else
+                {
+                    OnNetMsgReceived.Add(op, action);
+                }
+            }
+        }
+
+        public void RemoveCallback(NetOP op, Action<NetMsg> action)
+        {
+            if (OnNetMsgReceived != null && OnNetMsgReceived.ContainsKey(op))
+            {
+                OnNetMsgReceived[op] -= action;
+            }
+        }
+
+        public void RequestToken()
+        {
+            SendToServer(new Net_RequestToken());
+        }
+
+        private void Log(string msg)
+        {
+            //Ymit.UI.DebugFadeLabelMouse("Client: " + msg);
+            Console.WriteLine("Client: " + msg);
         }
     }
 }

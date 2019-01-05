@@ -1,5 +1,5 @@
 using System;
-using UnityEngine;
+//using UnityEngine;
 
 namespace Game
 {
@@ -22,7 +22,7 @@ namespace Game
 
         public TileCoord Rounded()
         {
-            return new TileCoord(Mathf.Floor(x), Mathf.Floor(y));
+            return new TileCoord((float)Math.Floor(x), (float)Math.Floor(y));
         }
         
         public static TileCoord operator +(TileCoord a, TileCoord b) { return new TileCoord(a.x + b.x, a.y + b.y); }
@@ -49,7 +49,7 @@ namespace Game
         
         public static float Magnitude(TileCoord a)
         {
-            return (float) Mathf.Sqrt(a.x * a.x + a.y * a.y);
+            return (float) Math.Sqrt(a.x * a.x + a.y * a.y);
         }
 
         public static TileCoord Normalize(TileCoord a)

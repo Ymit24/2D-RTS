@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using Game;
@@ -89,7 +88,7 @@ namespace Game.Pathfinding
                 }
                 else
                 {
-                    Ymit.UI.DebugFadeLabelMouse("Tile not found for coords: " + nodes[i].x + "," + nodes[i].y);
+                    //Ymit.UI.DebugFadeLabelMouse("Tile not found for coords: " + nodes[i].x + "," + nodes[i].y);
                 }
             }
 
@@ -103,15 +102,15 @@ namespace Game.Pathfinding
                 for (int y = 0; y < height; y++)
                 {
                     nodes[x, y].visited = false;
-                    nodes[x, y].localGoal = Mathf.Infinity;
-                    nodes[x, y].globalGoal = Mathf.Infinity;
+                    nodes[x, y].localGoal = float.MaxValue;
+                    nodes[x, y].globalGoal = float.MaxValue;
                     nodes[x, y].parent = null;
                 }
             }
 
             System.Func<Node, Node, float> distance = (a, b) =>
             {
-                return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2));
+                return (float)Math.Sqrt(Math.Pow(a.x - b.x, 2) + Math.Pow(a.y - b.y, 2));
             };
 
             System.Func<Node, Node, float> heuristic = (a, b) =>

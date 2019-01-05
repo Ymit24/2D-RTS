@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Game.Pathfinding;
 using Game.Task;
-using Ymit;
+//using Ymit;
 
 namespace Game
 {
@@ -179,7 +179,7 @@ namespace Game
 		{
 			if ((currentTask is GatherTask) == false) return;
 			GatherTask gatherTask = currentTask as GatherTask;
-			Ymit.UI.DebugFadeLabelMouse("Updated gather state! " + newState.ToString());
+			//Ymit.UI.DebugFadeLabelMouse("Updated gather state! " + newState.ToString());
 			stateData.gatherState = newState;
 			switch (stateData.gatherState)
 			{

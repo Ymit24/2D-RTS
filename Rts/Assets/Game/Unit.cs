@@ -36,7 +36,7 @@ namespace Game
             {
                 if (path != null && path.Finished == false) return path.GetCurrentTile();
                 if (lastTile != null) return lastTile;
-                Ymit.UI.DebugFadeLabelMouse("Failed to retrieve tile!");
+                //Ymit.UI.DebugFadeLabelMouse("Failed to retrieve tile!");
                 return null;
             }
         }
