@@ -9,6 +9,8 @@ using System.IO;
 namespace Game.Net
 {
     using NetMessages;
+    using System.Reflection;
+
     public class SocketServer : INetServer
     {
         private TcpListener listener;
@@ -111,6 +113,8 @@ namespace Game.Net
                     stream.Read(recBuffer, 0, recBuffer.Length);
 
                     BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Binder = new BindChanger();
+                    formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
                     MemoryStream ms = new MemoryStream(recBuffer);
                     NetMsg msg = (NetMsg)formatter.Deserialize(ms);
 

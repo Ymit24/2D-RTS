@@ -12,7 +12,6 @@ namespace Game.Lobby
         private INetClient client;
         private List<ClientData> clientData;
 
-        public Action OnReceivedToken;
         public Action<ClientData> OnNewClientJoined;
         public Action<ClientData> OnClientReadyChanged;
         public Action<ClientData> OnDisconnected;
@@ -57,7 +56,6 @@ namespace Game.Lobby
         /// </summary>
         public void Init()
         {
-            client.AddCallback(NetOP.AssignToken, OnAssignToken);
             client.AddCallback(NetOP.JoinedLobby, OnJoinedLobby);
             client.AddCallback(NetOP.ChangedReady, OnChangedReady);
             client.AddCallback(NetOP.Disconnect, OnDisconnect);
@@ -69,7 +67,6 @@ namespace Game.Lobby
         /// </summary>
         public void DeInit()
         {
-            client.RemoveCallback(NetOP.AssignToken, OnAssignToken);
             client.RemoveCallback(NetOP.JoinedLobby, OnJoinedLobby);
             client.RemoveCallback(NetOP.ChangedReady, OnChangedReady);
             client.RemoveCallback(NetOP.Disconnect, OnDisconnect);
@@ -84,17 +81,16 @@ namespace Game.Lobby
             client.SendToServer(m);
         }
 
-        private void OnAssignToken(NetMsg msg)
+        public void Join()
         {
             client.SendToServer(new Net_RequestClients());
-            Net_JoinedLobby m = new Net_JoinedLobby() { Token = client.GetToken(), Name = name };
+            Net_JoinedLobby m = new Net_JoinedLobby()
+            {
+                Token = client.GetToken(),
+                Name = name
+            };
             client.Receive(m);
             client.SendToServer(m);
-
-            if (OnReceivedToken != null)
-            {
-                OnReceivedToken();
-            }
         }
 
         private void OnJoinedLobby(NetMsg msg)

@@ -84,8 +84,9 @@ namespace Game.Lobby
         {
             Console.WriteLine("requested client");
             List<ClientData> clientsEx = new List<ClientData>();
-            foreach (ClientData c in clientData)
+            for (int i = 0; i < clientData.Count; i++)
             {
+                ClientData c = clientData[i];
                 if (c.Token == token)
                 {
                     continue;
@@ -99,12 +100,12 @@ namespace Game.Lobby
         {
             Net_Disconnect m = (Net_Disconnect)msg;
             ClientData u = null;
-            foreach (ClientData c in clientData)
+            for (int i = 0; i < clientData.Count; i++)
             {
-                if (c.Token == token)
+                if (clientData[i].Token == token)
                 {
-                    u = c;
-                    clientData.Remove(c);
+                    u = clientData[i];
+                    clientData.RemoveAt(i);
                     break;
                 }
             }

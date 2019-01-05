@@ -10,6 +10,8 @@ using System.Text;
 namespace Game.Net
 {
     using NetMessages;
+    using System.Reflection;
+
     public class SocketClient : INetClient
     {
         private short token = -1;
@@ -85,6 +87,8 @@ namespace Game.Net
             stream.Read(recBuffer, 0, recBuffer.Length);
 
             BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Binder = new BindChanger();
+            formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
             MemoryStream ms = new MemoryStream(recBuffer);
             NetMsg msg = (NetMsg)formatter.Deserialize(ms);
 

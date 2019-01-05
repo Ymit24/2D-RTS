@@ -20,7 +20,7 @@ public class WorldController : MonoBehaviour
         if (current == null) current = this;
     }
     
-    private Game.World world;
+    private World world;
     // Probably want a sprite manager, or specific TileController to manage this
     public Sprite TileSprite;
     public string TileLayer;
