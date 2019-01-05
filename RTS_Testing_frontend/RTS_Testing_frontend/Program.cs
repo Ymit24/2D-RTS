@@ -58,11 +58,16 @@ class Program
 
             server.AddCallback(NetOP.JoinedLobby, (NetMsg msg, short token) => {
                 Net_JoinedLobby m = (Net_JoinedLobby)msg;
-                Console.WriteLine("Name {0}, Token {1}, Ready {2}", m.Client.Name, m.Client.Token, m.Client.Ready);
+                Console.WriteLine("Client joined lobby. Name {0}, Token {1}, Ready {2}", m.Client.Name, m.Client.Token, m.Client.Ready);
             });
 
             lobbyServer = new LobbyServer(server);
             lobbyServer.Init();
+
+            lobbyServer.OnClientChangedReady += (ClientData c) =>
+            {
+                Console.WriteLine("{0} {1}", c.Name, c.Ready ? "is Ready" : "is not ready");
+            };
 
             ServerView();
         }
@@ -78,8 +83,23 @@ class Program
 
             lobbyClient = new LobbyClient(client, GetName());
             lobbyClient.Init();
-            client.RequestToken();
 
+            lobbyClient.OnClientReadyChanged += (ClientData c) =>
+            {
+                Console.WriteLine("{0} {1}", c.Name, c.Ready ? "is Ready" : "is not ready");
+            };
+
+            lobbyClient.OnNewClientJoined += (ClientData c) =>
+            {
+                Console.WriteLine("Client joined lobby. Name {0}, Token {1}, Ready {2}", c.Name, c.Token, c.Ready);
+            };
+
+            lobbyClient.OnDisconnected += (ClientData c) =>
+            {
+                Console.WriteLine("Client {0} disconnected.", c.Name);
+            };
+
+            client.RequestToken();
 
             ClientView();
         }
@@ -91,11 +111,11 @@ class Program
         while (true)
         {
             //Console.Clear();
-            d = lobbyServer.ClientData;
-            foreach (ClientData c in d)
-            {
-                Console.WriteLine("{0}: {1}", c.Name, c.Ready ? "Ready" : "Not Ready");
-            }
+            //d = lobbyServer.ClientData;
+            //foreach (ClientData c in d)
+            //{
+            //    Console.WriteLine("{0}: {1}", c.Name, c.Ready ? "Ready" : "Not Ready");
+            //}
             System.Threading.Thread.Sleep(100);
             server.Process();
         }
@@ -107,16 +127,17 @@ class Program
         while (true)
         {
             //Console.Clear();
-            d = lobbyClient.ClientData;
+            //d = lobbyClient.ClientData;
             //Console.WriteLine(lobbyClient.ClientData.Count);
-            foreach (ClientData c in d)
-            {
-                Console.WriteLine("{0}: {1}", c.Name, c.Ready ? "Ready" : "Not Ready");
-            }
+            //foreach (ClientData c in d)
+            //{
+            //    Console.WriteLine("{0}: {1}", c.Name, c.Ready ? "Ready" : "Not Ready");
+            //}
             if (Console.KeyAvailable)
             {
                 if (Console.ReadKey().Key == ConsoleKey.R)
                 {
+                    Console.Write("\n");
                     lobbyClient.SetReady(!lobbyClient.Ready);
                 }
             }
